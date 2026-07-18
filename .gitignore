@@ -1,0 +1,43 @@
+# ─── Virtual Environments ──────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Python Cache ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ─── Large Data & Model Files ───────────────────────────────────
+
+models/final_model.pkl
+models/processed_data.pkl
+data/raw/*.csv
+data/raw/*.parquet
+data/processed/*.csv
+data/processed/*.parquet
+
+# ─── ML Training Artifacts ──────────────────────────────────────
+catboost_info/
+notebooks/catboost_info/
+mlruns/
+lightning_logs/
+
+# ─── macOS ──────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ─── Jupyter ────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── IDE ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ─── Environment Variables ───────────────────────────────────────
+.env
+.env.local
+.env*.local
