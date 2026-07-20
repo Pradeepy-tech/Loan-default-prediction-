@@ -11,6 +11,7 @@ from sklearn.metrics import (
     f1_score, roc_auc_score, confusion_matrix,
     roc_curve, precision_recall_curve
 )
+from sklearn.model_selection import train_test_split
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -23,26 +24,41 @@ st.set_page_config(
 st.title("📈 Machine Learning Model Performance")
 st.markdown("---")
 
+# ── Load model + preprocessor + comparison CSV ─────────────────
 @st.cache_resource
-def load_files():
-    model      = joblib.load(ROOT / "models/best_model.pkl")
-    processed  = joblib.load(ROOT / "models/processed_data.pkl")
-    comparison = pd.read_csv(ROOT / "models/model_comparison.csv")
-    return model, processed, comparison
+def load_model_and_preprocessor():
+    model        = joblib.load(ROOT / "models/best_model.pkl")
+    preprocessor = joblib.load(ROOT / "models/preprocessor.pkl")
+    return model, preprocessor
+
+@st.cache_data
+def load_comparison():
+    return pd.read_csv(ROOT / "models/model_comparison.csv")
+
+# ── Rebuild X_test / y_test from CSV (avoids 89 MB processed_data.pkl) ────────
+@st.cache_data
+def get_test_data():
+    df = pd.read_csv(ROOT / "Loan_default.csv")
+    TARGET = "Default"
+    df = df.drop(columns=["LoanID"], errors="ignore")
+    X = df.drop(columns=[TARGET])
+    y = df[TARGET]
+    _, X_test, _, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    return X_test, y_test
 
 try:
-    model, processed, comparison = load_files()
-    _model_loaded = True
+    model, preprocessor = load_model_and_preprocessor()
+    comparison          = load_comparison()
+    X_test_raw, y_test  = get_test_data()
+    with st.spinner("Preparing test predictions…"):
+        X_test = preprocessor.transform(X_test_raw)
+        y_pred = model.predict(X_test)
+        y_prob = model.predict_proba(X_test)[:, 1]
 except Exception as _load_err:
     st.error(f"❌ Could not load model files. Please run `retrain_all.py` first.\n\n{_load_err}")
-    _model_loaded = False
     st.stop()
-
-X_test = processed["X_test"]
-y_test = processed["y_test"]
-
-y_pred = model.predict(X_test)
-y_prob = model.predict_proba(X_test)[:, 1]
 
 accuracy  = accuracy_score(y_test, y_pred)
 precision = precision_score(y_test, y_pred, zero_division=0)
@@ -129,7 +145,6 @@ with col_c:
     plt.close()
 
 with col_d:
-    # Precision-Recall Curve
     prec_curve, rec_curve, _ = precision_recall_curve(y_test, y_prob)
     fig, ax = plt.subplots(figsize=(6, 5))
     ax.plot(rec_curve, prec_curve, color="#9b59b6", linewidth=2)

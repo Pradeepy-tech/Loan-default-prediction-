@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import joblib
 from pathlib import Path
 
+from sklearn.model_selection import train_test_split
+
 ROOT = Path(__file__).resolve().parent.parent
 
 st.set_page_config(
@@ -16,26 +18,38 @@ st.set_page_config(
 st.title("⭐ Feature Importance & Explainability")
 st.markdown("---")
 
+# ── Load model + preprocessor ──────────────────────────────────
 @st.cache_resource
-def load_resources():
+def load_model_and_preprocessor():
     model        = joblib.load(ROOT / "models/best_model.pkl")
     preprocessor = joblib.load(ROOT / "models/preprocessor.pkl")
-    processed    = joblib.load(ROOT / "models/processed_data.pkl")
-    return model, preprocessor, processed
+    return model, preprocessor
+
+# ── Rebuild X_test / y_test from CSV (avoids 89 MB processed_data.pkl) ────────
+@st.cache_data
+def get_test_data():
+    df = pd.read_csv(ROOT / "Loan_default.csv")
+    TARGET = "Default"
+    df = df.drop(columns=["LoanID"], errors="ignore")
+    X = df.drop(columns=[TARGET])
+    y = df[TARGET]
+    _, X_test, _, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    return X_test, y_test
 
 try:
-    model, preprocessor, processed = load_resources()
+    model, preprocessor = load_model_and_preprocessor()
+    X_test_raw, y_test  = get_test_data()
+    with st.spinner("Preparing test data…"):
+        X_test = preprocessor.transform(X_test_raw)
 except Exception as _load_err:
     st.error(f"❌ Could not load model files. Please run `retrain_all.py` first.\n\n{_load_err}")
     st.stop()
 
-X_test = processed["X_test"]
-y_test = processed["y_test"]
-
-# Get feature names from the preprocessor
+# ── Get feature names from the preprocessor ───────────────────
 try:
     feature_names = preprocessor.get_feature_names_out().tolist()
-    # Clean up prefix (num__, cat__)
     feature_names_clean = [
         n.replace("num__", "").replace("cat__", "") for n in feature_names
     ]
@@ -92,7 +106,7 @@ st.markdown("---")
 # ── Search feature ─────────────────────────────────────────────
 st.subheader("🔍 Search a Feature")
 selected = st.selectbox("Choose a feature to inspect", importance["Feature"])
-row = importance[importance["Feature"] == selected].iloc[0]
+row  = importance[importance["Feature"] == selected].iloc[0]
 rank = importance[importance["Feature"] == selected].index[0] + 1
 
 col_a, col_b, col_c = st.columns(3)
