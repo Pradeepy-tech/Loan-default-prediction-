@@ -66,6 +66,7 @@ with col_a:
 with col_b:
     fig, ax = plt.subplots(figsize=(5, 3))
     sns.countplot(data=df, x=TARGET_COL, palette="Set2", ax=ax)
+    ax.set_xticks(ax.get_xticks())
     ax.set_xticklabels(["Safe (0)", "Default (1)"])
     ax.set_xlabel("Loan Outcome")
     ax.set_ylabel("Count")
@@ -96,6 +97,7 @@ with col_d:
     fig, ax = plt.subplots(figsize=(6, 4))
     sns.boxplot(data=df, x=TARGET_COL, y=selected_num,
                 palette="Set2", ax=ax)
+    ax.set_xticks(ax.get_xticks())
     ax.set_xticklabels(["Safe", "Default"])
     ax.set_title(f"{selected_num} by Default Status")
     st.pyplot(fig)

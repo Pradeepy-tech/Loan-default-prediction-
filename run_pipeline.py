@@ -22,15 +22,15 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 PROJECT_ROOT  = Path(__file__).resolve().parent
-RAW_CSV       = PROJECT_ROOT / "data" / "raw"  / "Loan_default.csv"
+RAW_CSV       = PROJECT_ROOT / "Loan_default.csv"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 MODELS_DIR    = PROJECT_ROOT / "models"
 
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
-TARGET_COL  = "Defaulted?"
-DROP_COLS   = ["Index"]           # ID column — not a feature
+TARGET_COL  = "Default"
+DROP_COLS   = ["LoanID"]          # ID column — not a feature
 
 
 # ── 1. Load ────────────────────────────────────────────────────────────────────

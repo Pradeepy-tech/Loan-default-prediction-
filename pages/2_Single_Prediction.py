@@ -21,10 +21,17 @@ def load_model():
     preprocessor = joblib.load(ROOT / "models/preprocessor.pkl")
     return model, preprocessor
 
-model, preprocessor = load_model()
+try:
+    model, preprocessor = load_model()
+    _model_loaded = True
+except Exception as _load_err:
+    st.error(f"❌ Could not load model files. Please run `retrain_all.py` first.\n\n{_load_err}")
+    _model_loaded = False
+    st.stop()
 
 st.subheader("📝 Enter Customer Details")
 
+# ── Form (only inputs + submit button) ────────────────────────────────────────
 with st.form("prediction_form"):
 
     col1, col2, col3 = st.columns(3)
@@ -83,8 +90,7 @@ with st.form("prediction_form"):
             "Number of Credit Lines", min_value=0, max_value=20, value=3
         )
 
-        mortgage = st.selectbox("Has Mortgage?", ["Yes", "No"])
-
+        mortgage  = st.selectbox("Has Mortgage?",   ["Yes", "No"])
         dependents = st.selectbox("Has Dependents?", ["Yes", "No"])
 
         purpose = st.selectbox(
@@ -96,6 +102,7 @@ with st.form("prediction_form"):
 
     predict_button = st.form_submit_button("🔮 Predict Loan Risk", use_container_width=True)
 
+# ── Results section (OUTSIDE the form) ────────────────────────────────────────
 if predict_button:
 
     input_df = pd.DataFrame([{
@@ -148,7 +155,7 @@ if predict_button:
         st.subheader("📋 Customer Summary")
 
         display_df = input_df.copy()
-        display_df["Prediction"]             = "Default" if prediction == 1 else "Safe"
+        display_df["Prediction"]              = "Default" if prediction == 1 else "Safe"
         display_df["Default Probability (%)"] = round(probability * 100, 2)
         st.dataframe(display_df, use_container_width=True)
 

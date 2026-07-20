@@ -30,7 +30,13 @@ def load_files():
     comparison = pd.read_csv(ROOT / "models/model_comparison.csv")
     return model, processed, comparison
 
-model, processed, comparison = load_files()
+try:
+    model, processed, comparison = load_files()
+    _model_loaded = True
+except Exception as _load_err:
+    st.error(f"❌ Could not load model files. Please run `retrain_all.py` first.\n\n{_load_err}")
+    _model_loaded = False
+    st.stop()
 
 X_test = processed["X_test"]
 y_test = processed["y_test"]

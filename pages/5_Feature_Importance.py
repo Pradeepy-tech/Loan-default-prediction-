@@ -23,7 +23,11 @@ def load_resources():
     processed    = joblib.load(ROOT / "models/processed_data.pkl")
     return model, preprocessor, processed
 
-model, preprocessor, processed = load_resources()
+try:
+    model, preprocessor, processed = load_resources()
+except Exception as _load_err:
+    st.error(f"❌ Could not load model files. Please run `retrain_all.py` first.\n\n{_load_err}")
+    st.stop()
 
 X_test = processed["X_test"]
 y_test = processed["y_test"]

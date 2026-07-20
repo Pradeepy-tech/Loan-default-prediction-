@@ -39,7 +39,12 @@ def load_models():
     preprocessor = joblib.load(ROOT / "models/preprocessor.pkl")
     return model, preprocessor
 
-model, preprocessor = load_models()
+try:
+    model, preprocessor = load_models()
+    _model_loaded = True
+except Exception as _load_err:
+    st.error(f"❌ Could not load model files. Please run `retrain_all.py` first.\n\n{_load_err}")
+    _model_loaded = False
 
 uploaded_file = st.file_uploader("📂 Upload CSV File", type=["csv"])
 
